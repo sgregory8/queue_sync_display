@@ -13,8 +13,7 @@ const SYSTEM_B = 'System B';
 
 const app = express();
 
-const messageMapA = new Map();
-const messageMapB = new Map();
+const messageMap = new Map();
 
 // initialize a simple http server
 const server = http.createServer(app);
@@ -34,7 +33,6 @@ wss.on('connection', (ws: WebSocket) => {
 });
 
 wss.broadcast = function broadcast(message: string) {
-    logger.info('sending');
     wss.clients.forEach((client: WebSocket) => client.send(message));
 };
 
@@ -56,23 +54,34 @@ function sendToClients(message: Object): void {
 
 function checkAndUpdateMap(topic: string, message: Object) : void {
     if (topic === SYSTEM_A) {
-        messageMapA.set(message.timestamp, message);
-        const existingBMessage = messageMapB.get(message.timestamp);
-        if (existingBMessage) {
-            sendToClients({ ...existingBMessage, ...message });
+        console.log('A message arrived');
+        const existingMessage = messageMap.get(message.timestamp);
+        if (existingMessage && !existingMessage.sent) {
+            console.log('A message arrived, B already here sending a + b');
+            sendToClients({ systemB: existingMessage.systemB, systemA: message });
+            existingMessage.sent = true;
+        } else {
+            console.log('A message arrived, B not here waiting');
+            setTimeout(() => {
+                console.log('A message arrived, B not here wait over checking for b');
+                const existingMessage = messageMap.get(message.timestamp);
+                if (!existingMessage.systemB && !existingMessage.sent) {
+                    console.log('B not here sending A on its own');
+                    sendToClients({ systemA: message });
+                    existingMessage.sent = true;
+                }
+            }, 800);
+        }
+        messageMap.set(message.timestamp, { systemA: message });
+        return;
+    } else {
+        const existingMessage = messageMap.get(message.timestamp);
+        if (existingMessage && !existingMessage.sent) {
+            sendToClients({ systemA: existingMessage.systemA, systemB: message });
+            existingMessage.sent = true;
             return;
         } else {
-            setTimeout(() => {
-                sendToClients(message);
-                return;
-            }, 8000000);
-        }
-    } else {
-        messageMapB.set(message.timestamp, message);
-        const existingAMessage = messageMapA.get(message.timestamp);
-        if (existingAMessage) {
-            sendToClients({ systemA: ...existingAMessage, ...message });
-            return;
+            messageMap.set(message.timestamp, { systemB: message });
         }
     }
 }
@@ -87,7 +96,6 @@ sockA.subscribe('');
 console.log('Worker connected to port 20001');
 
 sockA.on('message', function (topic: any, msg: any) {
-    logger.info('recieved A');
     const _message = JSON.parse(msg);
     checkAndUpdateMap(topic.toString(), _message);
 });
@@ -100,7 +108,6 @@ sockB.subscribe('');
 console.log('Worker connected to port 20001');
 
 sockB.on('message', function (topic: any, msg: any) {
-    logger.info('recieved B');
     const _message = JSON.parse(msg);
     checkAndUpdateMap(topic.toString(), _message);
 });
