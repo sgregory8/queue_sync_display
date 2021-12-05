@@ -1,0 +1,56 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "preserveConstEnums": true,
+    "strictNullChecks": true,
+    "inlineSources": true,
+    "inlineSourceMap": true,
+    "sourceRoot": "/",
+    "rootDirs": [
+      "./server/src",
+      "./test"
+    ],
+    "target": "esnext",
+    "outDir": ".build",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "lib": [
+      "esnext"
+    ],
+    "resolveJsonModule": true,
+    "importHelpers": true,
+    "noEmit": true,
+    "pretty": true,
+    "declaration": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "__mocks__/**/*.ts",
+    "server/src/**/*.ts",
+    "test/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules/**/*",
+    ".webpack/**/*",
+    ".vscode/**/*"
+  ],
+  "types": [
+    "jest",
+    "node"
+  ],
+  "ts-node": {
+    "require": [
+      "tsconfig-paths/register"
+    ]
+  }
+}
