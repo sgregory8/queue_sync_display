@@ -9,7 +9,6 @@ import type { Server } from 'http';
 
 const { Api_Port } = process.env;
 const SYSTEM_A = 'System A';
-const SYSTEM_B = 'System B';
 
 const app = express();
 
@@ -52,21 +51,16 @@ function sendToClients(message: Object): void {
     wss.broadcast(JSON.stringify(message));
 }
 
-function checkAndUpdateMap(topic: string, message: Object) : void {
+function syncMessageAndSend(topic: string, message: Object) : void {
     if (topic === SYSTEM_A) {
-        console.log('A message arrived');
         const existingMessage = messageMap.get(message.timestamp);
         if (existingMessage && !existingMessage.sent) {
-            console.log('A message arrived, B already here sending a + b');
             sendToClients({ systemB: existingMessage.systemB, systemA: message });
             existingMessage.sent = true;
         } else {
-            console.log('A message arrived, B not here waiting');
             setTimeout(() => {
-                console.log('A message arrived, B not here wait over checking for b');
                 const existingMessage = messageMap.get(message.timestamp);
                 if (!existingMessage.systemB && !existingMessage.sent) {
-                    console.log('B not here sending A on its own');
                     sendToClients({ systemA: message });
                     existingMessage.sent = true;
                 }
@@ -93,11 +87,10 @@ const sockA = zmq.socket('sub');
 // subscribe to systemA
 sockA.connect('tcp://192.168.1.16:20001');
 sockA.subscribe('');
-console.log('Worker connected to port 20001');
 
 sockA.on('message', function (topic: any, msg: any) {
     const _message = JSON.parse(msg);
-    checkAndUpdateMap(topic.toString(), _message);
+    syncMessageAndSend(topic.toString(), _message);
 });
 
 const sockB = zmq.socket('sub');
@@ -105,11 +98,10 @@ const sockB = zmq.socket('sub');
 // subscribe to systemB
 sockB.connect('tcp://192.168.1.16:20002');
 sockB.subscribe('');
-console.log('Worker connected to port 20001');
 
 sockB.on('message', function (topic: any, msg: any) {
     const _message = JSON.parse(msg);
-    checkAndUpdateMap(topic.toString(), _message);
+    syncMessageAndSend(topic.toString(), _message);
 });
 
 export { startServer };
