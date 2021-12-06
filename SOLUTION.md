@@ -20,3 +20,7 @@ data only.
 - Test the sync implementation, it should be able to be exteneded to as many async events as needed.
 - Drive the client application through a redux middleware to seperate the socket logic from the component, let the comonent be responsible for rendering only.
 - Combine the data to one more easily consumable "view".
+
+## Running
+
+Check addresses from [mock_systems](tools/mock_systems.js) lines 7 & 10 match [ws server](server/src/server.ts) lines 89 and 100.
