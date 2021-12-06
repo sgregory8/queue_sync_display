@@ -51,6 +51,7 @@ function sendToClients(message: Object): void {
     wss.broadcast(JSON.stringify(message));
 }
 
+// sync data sources and send message to clients
 function syncMessageAndSend(topic: string, message: Object) : void {
     if (topic === SYSTEM_A) {
         const existingMessage = messageMap.get(message.timestamp);
